@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Customer Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Customer Management</h1>
+    <div id="customerTableContainer" style="display: none;">
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Credit Limit</th>
+                </tr>
+            </thead>
+            <tbody id="customerData">
+            </tbody>
+        </table>
+    </div>
+    <div id="searchOptions" style="display: none;">
+        <button class="button button-secondary" onclick="showSearchByIdForm()">Search by Customer ID</button>
+    </div>
+    
+    <div id="searchByIdForm" style="display: none;">
+        <h3>Search by Customer ID</h3>
+        <div>
+            <label for="searchCustomerId">Customer ID:</label>
+            <input type="text" id="searchCustomerId" class="search-input">
+        </div>
+        <button class="button" onclick="searchById()">Search</button>
+    </div>
+    <button type="button" onclick="addCustomerForm()">Add Customer</button>
+    <button type="button" onclick="displayCustomers()">Display</button>
+    <button type="button" onclick="deleteCustomerForm()">Delete Customer</button>
+    <button type="button" onclick="editCustomerForm()">Edit Customer</button>
+    <button class="button" onclick="showFilterOptions()">Filter by Credit Limit</button>
+    <button class="button" onclick="showSearchOptions()">Search</button>
+
+    <form id="customerForm" style="display: none;">
+        <label for="customerId">Customer ID:</label>
+        <input type="text" id="customerId" required pattern="\d{4}" title="Please enter a 4-digit number." />
+        <br />
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" required />
+        <br />
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" required />
+        <br />
+        <label for="creditLimit">Credit Limit:</label>
+        <input type="text" id="creditLimit" required pattern="[0-9]+(\.[0-9]{1,2})?"
+            title="Please enter a valid credit limit." />
+        <br />
+        <button type="button" onclick="addCustomer()">Add Customer</button>
+    </form>
+    <form id="deleteForm" style="display: none;">
+        <label for="deleteId">Customer ID:</label>
+        <input type="text" id="deleteId" required>
+        <button type="button" onclick="deleteCustomer()">Delete</button>
+    </form>
+    
+    <form id="editForm" style="display: none;">
+        <label for="editId">Customer ID:</label>
+        <input type="text" id="editId" required>
+        <label for="editFirstName">First Name:</label>
+        <input type="text" id="editFirstName" required>
+        <label for="editLastName">Last Name:</label>
+        <input type="text" id="editLastName" required>
+        <label for="editCreditLimit">Credit Limit:</label>
+        <input type="text" id="editCreditLimit" required>
+        <button type="button" onclick="editCustomer()">Edit</button>
+        <button type="button" onclick="saveEditedCustomer()" style="display: none;">Save</button>
+    </form>
+    
+    <script>
+        // Array to store customers
+        var customers = [
+            {
+                customerId: 4322,
+                firstName: "Manisha",
+                lastName: "Saini",
+                creditLimit: 5000.00
+            },
+            {
+                customerId: 5478,
+                firstName: "Malkit",
+                lastName: "Saini",
+                creditLimit: 10000.00
+            },
+            {
+                customerId: 4123,
+                firstName: "Virti",
+                lastName: "saini",
+                creditLimit: 7500.00
+            },
+            {
+                customerId: 3567,
+                firstName: "Preet",
+                lastName: "Saini",
+                creditLimit: 3000.00
+            },
+            {
+                customerId: 8901,
+                firstName: "diljot",
+                lastName: "Saini",
+                creditLimit: 20000.00
+            },
+            {
+                customerId: 2345,
+                firstName: "Ravi",
+                lastName: "Saini",
+                creditLimit: 15000.00
+            }
+        ];
+
+        // Function to display the customer table
+        function displayCustomers() {
+            var table = document.getElementById('customerTable');
+            var tbody = document.getElementById('customerData');
+
+            // Clear the table body
+            tbody.innerHTML = '';
+
+            // Add each customer to the table
+            customers.forEach(function (customer) {
+                var row = document.createElement('tr');
+
+                var customerIdCell = document.createElement('td');
+                customerIdCell.textContent = customer.customerId;
+                row.appendChild(customerIdCell);
+
+                var firstNameCell = document.createElement('td');
+                firstNameCell.textContent = customer.firstName;
+                row.appendChild(firstNameCell);
+
+                var lastNameCell = document.createElement('td');
+                lastNameCell.textContent = customer.lastName;
+                row.appendChild(lastNameCell);
+
+                var creditLimitCell = document.createElement('td');
+                creditLimitCell.textContent = customer.creditLimit.toFixed(2);
+                row.appendChild(creditLimitCell);
+
+                tbody.appendChild(row);
+            });
+
+            // Show the customer table
+            document.getElementById('customerTableContainer').style.display = 'block';
+        }
+
+        // Function to show the customer form and hide the "Add Customer" button
+        function addCustomerForm() {
+            document.getElementById('customerForm').style.display = 'block';
+            document.getElementById('customerId').focus();
+            document.getElementById('customerId').select();
+            document.querySelector('button').style.display = 'none';
+        }
+
+        // Function to add a new customer to the array and update the table
+        function addCustomer() {
+            var customerId = document.getElementById('customerId').value;
+            var firstName = document.getElementById('firstName').value;
+            var lastName = document.getElementById('lastName').value;
+            var creditLimit = parseFloat(document.getElementById('creditLimit').value);
+
+            var customer = {
+                customerId: customerId,
+                firstName: firstName,
+                lastName: lastName,
+                creditLimit: creditLimit
+            };
+
+            customers.push(customer);
+
+            // Clear the form fields
+            document.getElementById('customerId').value = '';
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('creditLimit').value = '';
+
+            // Display the updated customers in the table
+            displayCustomers();
+
+            // Show the "Add Customer" button and hide the customer form
+            document.getElementById('customerForm').style.display = 'none';
+            document.querySelector('button').style.display = 'block';
+        }
+
+        function deleteCustomerForm() {
+                document.getElementById('customerForm').style.display = 'none';
+                document.getElementById('deleteForm').style.display = 'block';
+                document.getElementById('editForm').style.display = 'none';
+            }
+
+            // Function to delete a customer from the table
+            function deleteCustomer() {
+                    var deleteId = parseInt(document.getElementById('deleteId').value);
+                    var customerIndex = customers.findIndex(function (customer) {
+                        return customer.customerId === deleteId;
+                    });
+
+                    if (customerIndex > -1) {
+                        customers.splice(customerIndex, 1);
+                        displayCustomers();
+                    }
+
+                    document.getElementById('deleteId').value = '';
+                }
+
+            // Function to show the edit customer form and hide other forms
+            function editCustomerForm() {
+                document.getElementById('customerForm').style.display = 'none';
+                document.getElementById('deleteForm').style.display = 'none';
+                document.getElementById('editForm').style.display = 'block';
+            }
+
+            function editCustomerForm() {
+                    document.getElementById('customerForm').style.display = 'none';
+                    document.getElementById('deleteForm').style.display = 'none';
+                    document.getElementById('editForm').style.display = 'block';
+                }
+
+                // Function to edit a customer's information in the table
+                function editCustomer() {
+                        var editId = parseInt(document.getElementById('editId').value);
+                        var customerIndex = customers.findIndex(function (customer) {
+                            return customer.customerId === editId;
+                        });
+
+                        if (customerIndex > -1) {
+                            var firstName = document.getElementById('editFirstName').value;
+                            var lastName = document.getElementById('editLastName').value;
+                            var creditLimit = parseFloat(document.getElementById('editCreditLimit').value);
+
+                            customers[customerIndex].firstName = firstName;
+                            customers[customerIndex].lastName = lastName;
+                            customers[customerIndex].creditLimit = creditLimit;
+
+                            displayCustomers();
+                            cancelEditCustomer();
+                        }
+                    }
+
+                    // Function to save the edited customer details
+                    function saveEditedCustomer() {
+                        // Perform the same action as editCustomer() function
+                        editCustomer();
+                    }
+
+                    // Function to cancel the edit customer form and reset the fields
+                    function cancelEditCustomer() {
+                        document.getElementById('editId').value = '';
+                        document.getElementById('editFirstName').value = '';
+                        document.getElementById('editLastName').value = '';
+                        document.getElementById('editCreditLimit').value = '';
+
+                        document.getElementById('editForm').style.display = 'none';
+                    }
+                    function showFilterOptions() {
+                            var filterOptions = document.getElementById("filterOptions");
+                            filterOptions.style.display = "block";
+                        }
+
+                        function filterTable() {
+                            var highToLowCheckbox = document.getElementById("highToLowCheckbox");
+                            var lowToHighCheckbox = document.getElementById("lowToHighCheckbox");
+                            var aToZCheckbox = document.getElementById("aToZCheckbox");
+                            var zToACheckbox = document.getElementById("zToACheckbox");
+
+                            if (highToLowCheckbox.checked) {
+                                sortByCreditLimitDesc();
+                            } else if (lowToHighCheckbox.checked) {
+                                sortByCreditLimitAsc();
+                            } else if (aToZCheckbox.checked) {
+                                sortByLastNameAsc();
+                            } else if (zToACheckbox.checked) {
+                                sortByLastNameDesc();
+                            }
+
+                            displayCustomers();
+                        }
+
+                        function sortByCreditLimitDesc() {
+                            customers.sort(function (a, b) {
+                                return b.creditLimit - a.creditLimit;
+                            });
+                        }
+
+                        function sortByCreditLimitAsc() {
+                            customers.sort(function (a, b) {
+                                return a.creditLimit - b.creditLimit;
+                            });
+                        }
+
+                        function sortByLastNameAsc() {
+                            customers.sort(function (a, b) {
+                                var lastNameA = a.lastName.toUpperCase();
+                                var lastNameB = b.lastName.toUpperCase();
+                                if (lastNameA < lastNameB) {
+                                    return -1;
+                                }
+                                if (lastNameA > lastNameB) {
+                                    return 1;
+                                }
+                                return 0;
+                            });
+                        }
+
+                        function sortByLastNameDesc() {
+                            customers.sort(function (a, b) {
+                                var lastNameA = a.lastName.toUpperCase();
+                                var lastNameB = b.lastName.toUpperCase();
+                                if (lastNameA < lastNameB) {
+                                    return 1;
+                                }
+                                if (lastNameA > lastNameB) {
+                                    return -1;
+                                }
+                                return 0;
+                            });
+                        }
+
+                        function showSearchOptions() {
+                            var searchOptions = document.getElementById("searchOptions");
+                            searchOptions.style.display = "block";
+                        }
+
+                        function showSearchByIdForm() {
+                            var searchByIdForm = document.getElementById("searchByIdForm");
+                            searchByIdForm.style.display = "block";
+                        }
+
+                        function searchById() {
+                            var searchCustomerId = parseInt(document.getElementById("searchCustomerId").value);
+
+                            var filteredCustomers = customers.filter(function (customer) {
+                                return customer.customerId === searchCustomerId;
+                            });
+
+                            customers = filteredCustomers;
+                            displayCustomers();
+   }
+                        
+    </script>
+</body>
+
+</html>
